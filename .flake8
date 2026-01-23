@@ -1,0 +1,290 @@
+[flake8]
+# ============================================
+# CONFIGURAÇÃO BASE
+# ============================================
+max-line-length = 88
+extend-ignore =
+    E203,  # Whitespace before ':' (compatível com black)
+    W503,  # Line break before binary operator
+    E501,  # Line too long (controlado por max-line-length)
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    env,
+    .env,
+    node_modules,
+    build,
+    dist,
+    *.egg-info,
+    .pytest_cache,
+    .tox,
+    .mypy_cache,
+    # Django específico
+    migrations,
+    media,
+    staticfiles,
+    # Para DRF/Swagger
+    *migrations/*,
+    *templates/*,
+    *static/*,
+    *media/*
+
+# ============================================
+# PLUGINS RECOMENDADOS (instalar separadamente)
+# ============================================
+# pip install flake8-django flake8-drf flake8-openapi
+# pip install flake8-docstrings flake8-bugbear flake8-comprehensions
+# pip install flake8-html flake8-json flake8-bandit
+
+enable-extensions =
+    # Django específicos
+    DJ,    # flake8-django
+    DRF,   # flake8-drf
+    OA,    # flake8-openapi
+
+    # Gerais
+    G,     # flake8-docstrings (Google style)
+    B,     # flake8-bugbear
+    C4,    # flake8-comprehensions
+    T,     # flake8-debugger
+    S,     # flake8-bandit (security)
+    N,     # naming (PEP8)
+    ANN,   # flake8-annotations
+    COM,   # flake8-commas
+    I,     # isort
+    Q,     # flake8-quotes
+
+# ============================================
+# CONFIGURAÇÃO POR PLUGIN
+# ============================================
+
+# ---------- DJANGO ----------
+[django]
+# Ignorar certos padrões do Django
+ignore-django =
+    DJ01,  # Do not use null=True on string-based fields
+    DJ06,  # Model should define __str__ method
+    DJ12,  # Do not use gettext_lazy as default argument
+
+# ---------- DRF ----------
+[drf]
+# Regras específicas para Django REST Framework
+check-model-serializers = true
+check-serializer-methods = true
+
+# ---------- OPENAPI/DRF SPECTACULAR ----------
+[openapi]
+# Para projetos usando drf-spectacular ou similar
+validate-schemas = true
+ignore-deprecated = true
+
+# ---------- DOCSTRINGS (Google Style) ----------
+[docstrings]
+docstring-convention = google
+ignore-docstrings =
+    # Ignorar em arquivos Django específicos
+    D100,  # Missing docstring in public module (migrations, models padrão)
+    D101,  # Missing docstring in public class (Model, Serializer)
+    D102,  # Missing docstring in public method (get_queryset, etc)
+    D105,  # Missing docstring in magic method
+    D107,  # Missing docstring in __init__
+    D203,  # 1 blank line required before class docstring
+    D213,  # Multi-line docstring summary should start at second line
+    D400,  # First line should end with a period
+    D401,  # First line should be in imperative mood
+    D415,  # First line should end with a period, question mark, or exclamation point
+
+# ---------- TYPE ANNOTATIONS ----------
+[flake8-annotations]
+# Forçar type hints em funções públicas
+allow-untyped-defs = false
+allow-untyped-nested = true
+ignore-fully-untyped = false
+mypy-init-return = true
+
+# ---------- QUOTES ----------
+[flake8-quotes]
+inline-quotes = "double"  # " para strings, ' para caracteres
+multiline-quotes = "double"
+docstring-quotes = "double"
+
+# ============================================
+# IGNORES ESPECÍFICOS POR TIPO DE ARQUIVO
+# ============================================
+per-file-ignores =
+    # ---------- MIGRAÇÕES ----------
+    */migrations/*.py:
+        # Ignorar quase tudo em migrations
+        E,  # pycodestyle errors
+        W,  # pycodestyle warnings
+        F,  # pyflakes
+        C,  # complexity
+        N,  # naming
+        G,  # docstrings
+        B,  # bugbear
+        DJ, # django
+
+    # ---------- MODELS ----------
+    */models.py:
+        DJ01,  # null=True em CharField/TextField
+        DJ06,  # __str__ method
+        DJ08,  # ordering no Meta
+        DJ12,  # gettext_lazy como argumento padrão
+        C901,  # Muito complexo (métodos complexos em models)
+
+    # ---------- SERIALIZERS ----------
+    */serializers.py:
+        DJ06,  # __str__ method
+        DRF001,  # ModelSerializer sem fields/exclude
+        DRF003,  # Serializer sem fields
+
+    # ---------- VIEWS/VIEWSETS ----------
+    */views.py:
+        # Permite alguns patterns comuns
+        B008,  # Do not perform function calls in argument defaults (cache, gettext_lazy)
+        B006,  # Do not use mutable data structures for argument defaults (querysets)
+
+    # ---------- URLs ----------
+    */urls.py:
+        F401,  # unused imports (pode ter imports não usados em patterns)
+        F403,  # star imports (from . import views)
+        N802,  # function name should be lowercase (urlpatterns)
+        N803,  # argument name should be lowercase (path names)
+
+    # ---------- ADMIN ----------
+    */admin.py:
+        DJ11,  # Do not use list_display_links
+        DJ13,  # admin.ModelAdmin sem list_display
+
+    # ---------- TESTES ----------
+    tests/*.py:
+        S101,   # assert usado em testes (é OK)
+        S607,   # subprocess com caminho parcial (testing)
+        W0212,  # acessando atributos protected (common em testes)
+        ANN,    # type hints em fixtures/testes
+        D,      # docstrings em testes (opcional)
+
+    # ---------- CONFIGURAÇÃO ----------
+    settings/*.py:
+        # Permite alguns patterns de configuração
+        B008,  # function calls in defaults (common in settings)
+        F403,  # star imports (from .base import *)
+        F405,  # name from star import
+        E265,  # block comment should start with '# '
+
+    # ---------- SWAGGER/OPENAPI ----------
+    */schema.py:
+    */schemas/*.py:
+        OA001,  # Schema without description
+        OA002,  # Parameter without description
+        OA003,  # Response without description
+
+    # ---------- MANAGERS/COMMANDS ----------
+    */management/commands/*.py:
+        DJ14,  # Command sem help text
+        N802,  # Command class name (BaseCommand)
+
+# ============================================
+# REGRAS DE NOMING ESPECÍFICAS
+# ============================================
+# PEP8 naming conventions adaptadas para Django
+
+# Classes: PascalCase
+class-naming-style = PascalCase
+# Funções/Métodos: snake_case
+function-naming-style = snake_case
+# Variáveis: snake_case
+variable-naming-style = snake_case
+# Constantes: UPPER_CASE
+constant-naming-style = UPPER_CASE
+
+# Exceções para Django
+ignore-names =
+    # Models
+    Meta,
+    DoesNotExist,
+    MultipleObjectsReturned,
+    # DRF
+    ViewSet,
+    Serializer,
+    # Forms
+    Form,
+    ModelForm,
+    # Admin
+    ModelAdmin,
+    StackedInline,
+    TabularInline
+
+# ============================================
+# CONFIGURAÇÕES DE SEGURANÇA (flake8-bandit)
+# ============================================
+[bandit]
+# Regras de segurança específicas para Django
+skips =
+    # Comuns em Django que são seguros
+    B101,  # assert usado (OK em testes/dev)
+    B105,  # hardcoded_password_string (settings podem ter)
+    B106,  # hardcoded_password_funcarg (manage.py, wsgi)
+    B107,  # hardcoded_password_default (models/forms)
+    B201,  # flask_debug_true (não é Flask)
+    B301,  # pickle (Django sessions usam)
+    B302,  # marshal (não comum)
+    B303,  # md5 (Django password hashers)
+    B304,  # ciphers (SSL config)
+    B305,  # cipher_modes (SSL config)
+    B306,  # mktime (timezone aware)
+    B307,  # eval (template engines)
+    B308,  # mark_safe (template filters)
+    B309,  # httpsconnection (SSL verify)
+    B310,  # urllib_urlopen (requests é melhor)
+    B311,  # random (secrets é melhor)
+    B312,  # telnetlib (não comum)
+    B313,  # xml_bad_cElementTree (defusedxml)
+    B314,  # xml_bad_ElementTree (defusedxml)
+    B315,  # xml_bad_expatreader (defusedxml)
+    B316,  # xml_bad_expatbuilder (defusedxml)
+    B317,  # xml_bad_sax (defusedxml)
+    B318,  # xml_bad_minidom (defusedxml)
+    B319,  # xml_bad_pulldom (defusedxml)
+    B320,  # xml_bad_etree (defusedxml)
+    B321,  # ftplib (não comum)
+
+# ============================================
+# OUTPUT FORMAT
+# ============================================
+# Para integração com CI/CD
+format =
+    default,  # Formato padrão
+    html,     # Para relatório HTML (flake8-html)
+    json,     # Para relatório JSON (flake8-json)
+
+# Estatísticas
+statistics = true
+count = true
+
+# Output colorido
+color = auto
+
+# ============================================
+# CONFIGURAÇÕES AVANÇADAS
+# ============================================
+# Complexidade ciclomática
+max-complexity = 15
+
+# Número máximo de argumentos em funções
+max-args = 8
+
+# Número máximo de atributos em classes
+max-attributes = 12
+
+# Número máximo de métodos públicos
+max-public-methods = 20
+
+# Número máximo de métodos em uma classe
+max-methods = 30
+
+# Ignorar linhas muito curtas (comentários, docstrings)
+min-public-methods = 0
+min-attributes = 0

@@ -104,6 +104,7 @@ virtualenv/
 venv*/
 env*/
 ENV*/
+.env
 
 # ================================
 # DATABASES
